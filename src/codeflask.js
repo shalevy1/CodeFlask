@@ -362,7 +362,7 @@ export default class CodeFlask {
   createAutoSuggResults(results) {
     let html = '';
     for (let index=0; index < results.length; index++) {
-      let item = results[index]
+      let item = results[index];
       let title = item.title;
       let description = item.description;
       html += `<li class="index-${index}" idx="${index}"><span class="title">${title}</span><span class="description">${description}</span>`;
@@ -372,8 +372,13 @@ export default class CodeFlask {
 
     let all = this.elAutoSuggResults.querySelectorAll('li');
     all.forEach(el => {
-      el.addEventListener('click', (e) =>{
-        this.triggerAutoSuggSelect(e.target);
+      el.addEventListener('click', (e) => {
+        let t = e.target;
+        if (e.target.tagName === 'SPAN') {
+          t = e.target.parentNode
+        }
+
+        this.triggerAutoSuggSelect(t);
       })
     });
   }
