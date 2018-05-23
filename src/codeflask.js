@@ -1,7 +1,8 @@
 import { editor_css } from './styles/editor';
 import { inject_css } from './styles/injector';
-import { default_css_theme, FONT_SIZE } from './styles/theme-default';
+import { default_css_theme } from './styles/theme-default';
 import { escape_html } from './utils/html-escape';
+import getCursorCoordinates from './utils/cursor-coordinates';
 import Prism from 'prismjs';
 
 export default class CodeFlask {
@@ -53,6 +54,9 @@ export default class CodeFlask {
     this.createPre();
     this.createCode();
 
+    // Autosuggestions
+    this.createAutoSugg();
+
     this.runOptions();
     this.listenTextarea();
     this.populateDefault();
@@ -94,6 +98,13 @@ export default class CodeFlask {
     return element;
   }
 
+  // Create auto suggestions components like list
+  createAutoSugg() {
+    this.elAutoSuggResults = this.createElement('div', this.elWrapper);
+    this.elAutoSuggResults.classList.add('codeflask__auto-suggestions-list');
+    this.elAutoSuggResults.hidden = true;
+  }
+
   runOptions() {
     this.opts.rtl = this.opts.rtl || false;
     this.opts.tabSize = this.opts.tabSize || 2;
@@ -102,6 +113,7 @@ export default class CodeFlask {
     this.opts.defaultTheme = this.opts.defaultTheme !== false;
     // Set word wrap
     this.opts.wordWrap = this.opts.wordWrap || false;
+    this.opts.autoSuggestions = this.opts.autoSuggestions || false;
 
     if (this.opts.rtl === true) {
       this.elTextarea.setAttribute('dir', 'rtl');
@@ -129,6 +141,14 @@ export default class CodeFlask {
       this.elTextarea.classList.add('word-wrap');
       this.elPre.classList.add('word-wrap');
     }
+
+    // Default theme options
+    this.defaultThemeOptions = {
+      lineHeight: 20,
+      fontSize: 13
+    };
+
+    this.opts.themeOptions = Object.assign(this.defaultThemeOptions, this.opts.themeOptions || {})
   }
 
   updateLineNumbersCount() {
@@ -157,6 +177,7 @@ export default class CodeFlask {
       this.handleTabs(e);
       this.handleSelfClosingCharacters(e);
       this.handleNewLineIndentation(e);
+      this.handleAutoSuggKeysDown(e);
     });
 
     this.elTextarea.addEventListener('scroll', (e) => {
@@ -249,13 +270,157 @@ export default class CodeFlask {
     // }
   }
 
-  closeCharacter(closeChar) {
-    const selectionStart = this.elTextarea.selectionStart;
-    const selectionEnd = this.elTextarea.selectionEnd;
-    const newCode = `${this.code.substring(0, selectionStart)}${closeChar}${this.code.substring(selectionEnd)}`;
+  // PUBLIC
+  // Create auto suggest results in DOM and update coordinates
+  setAutoSuggestionsResults(results) {
+    // If results then show auto suggestions
+    if (results && results.length > 0) {
+      this.autoSuggestionsList = results;
+      this.createAutoSuggResults(results);
+      this.updateAutoSuggResultsCoordinates();
+      this.setAutoSuggSelected(this.autoSuggSelectedIndex || 0);
+      this.showAutoSuggResults();
+    } else {
+      this.hideAutoSuggResults();
+    }
+  }
+
+  // PUBLIC
+  // Should be used by client to feed the results based on user input
+  onAutoSuggestionsSelect(callback) {
+    if (callback && {}.toString.call(callback) !== '[object Function]') {
+      throw Error('CodeFlask expects callback of type Function');
+      return;
+    }
+
+    this.onAutoSuggSelectCallback = callback;
+  }
+
+  // Handle keydown events to move current selected up or down in auto suggest results
+  handleAutoSuggKeysDown(e) {
+    // If its any of enter, tab, up and down key then dont proceed
+    if ([38, 40, 13, 9].indexOf(e.keyCode) === -1) return;
+
+    if (this.elAutoSuggResults.hidden || !this.autoSuggestionsList) return;
+
+    // stop the event
+    e.stopPropagation();
+    e.preventDefault();
+
+    // on enter call
+    if (e.keyCode === 13) {
+      let all = this.elAutoSuggResults.querySelectorAll('li');
+      if (all[this.autoSuggSelectedIndex]) this.triggerAutoSuggSelect(all[this.autoSuggSelectedIndex]);
+    }
+
+    let index = this.getAutoSuggSelected();
+
+    // Arrow up and down logic
+    if (index !== null && e.keyCode === 38) {
+      if (index === 0) {
+        index = this.autoSuggestionsList.length - 1;
+      } else {
+        index -= 1
+      }
+    } else if (index !== null && e.keyCode === 40) {
+      if (index === this.autoSuggestionsList.length - 1) {
+        index = 0
+      } else {
+        index += 1
+      }
+    } else {
+      index = 0
+    }
+
+    this.setAutoSuggSelected(index);
+  }
+
+  // Get selected item in auto suggest list
+  getAutoSuggSelected() {
+    let el = this.elAutoSuggResults.querySelector('li.selected');
+    if (el) {
+      return parseInt(el.getAttribute('idx'))
+    }
+
+    return null
+  }
+
+  // Set item as selected in auto suggest list
+  setAutoSuggSelected(index) {
+    let all = this.elAutoSuggResults.querySelectorAll('li');
+    if (!all[index]) return;
+
+    all.forEach((el) => {
+      el.classList.remove('selected');
+    })
+
+    all[index].classList.add('selected');
+    this.autoSuggSelectedIndex = index;
+  }
+
+  // Create auto suggest list with given results
+  createAutoSuggResults(results) {
+    let html = '';
+    for (let index=0; index < results.length; index++) {
+      let item = results[index]
+      let title = item.title;
+      let description = item.description;
+      html += `<li class="index-${index}" idx="${index}"><span class="title">${title}</span><span class="description">${description}</span>`;
+    }
+
+    this.elAutoSuggResults.innerHTML = `<ul>${html}</ul>`;
+
+    let all = this.elAutoSuggResults.querySelectorAll('li');
+    all.forEach(el => {
+      el.addEventListener('click', (e) =>{
+        this.triggerAutoSuggSelect(e.target);
+      })
+    });
+  }
+
+  // When called it triggers auto suggest callback set by client
+  triggerAutoSuggSelect(el) {
+    if (this.onAutoSuggSelectCallback) {
+      this.onAutoSuggSelectCallback(this.autoSuggestionsList[parseInt(el.getAttribute('idx'))]);
+    }
+  }
+
+  // Show auto suggest results in DOM
+  showAutoSuggResults() {
+    this.elAutoSuggResults.hidden = false
+  }
+
+  // Hide auto suggest results in DOM
+  hideAutoSuggResults() {
+    this.elAutoSuggResults.hidden = true
+  }
+
+  // Update left and top coordinates of auto suggest coordinates
+  updateAutoSuggResultsCoordinates(cursorPosition) {
+    cursorPosition = cursorPosition || this.elTextarea.selectionEnd
+
+    // Get cursor coordinates relative to textarea
+    let coordinates = getCursorCoordinates(this.elTextarea, cursorPosition)
+    this.elAutoSuggResults.style.top = (coordinates.top + this.opts.themeOptions.lineHeight) + 'px'
+    this.elAutoSuggResults.style.left = coordinates.left + 'px'
+  }
+
+  closeCharacter(closeChar, cursorOffSet) {
+    // cursorOffSet can be used to move cursor relative to the closing character(s) update.
+    cursorOffSet = cursorOffSet || 1
+    let selectionStart = this.elTextarea.selectionStart
+    let selectionEnd = this.elTextarea.selectionEnd
+    let newCode = `${this.code.substring(0, selectionStart)}${closeChar}${this.code.substring(selectionEnd)}`
 
     this.updateCode(newCode);
-    this.elTextarea.selectionEnd = selectionEnd;
+    this.elTextarea.selectionEnd = selectionEnd
+
+    if (cursorOffSet > 1) {
+      // Update cursor position once code is update. setTimeout is used since `updateCode` runs after 1ms
+      setTimeout(() => {
+        this.elTextarea.selectionEnd = this.elTextarea.selectionStart = this.code.substring(0, selectionStart).length + cursorOffSet
+      }, 2);
+    }
   }
 
   updateCode(newCode) {

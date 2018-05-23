@@ -114,4 +114,35 @@ export const editor_css = `
     background: #eee;
     z-index: 1;
   }
+
+.codeflask .codeflask__auto-suggestions-list {
+	position: absolute;
+  width: 300px;
+  font-family: monospace;
+  background: #f4f4f4;
+	font-size: 12px;
+	border: 1px solid #eeeeee;
+	z-index: 10;
+}
+
+.codeflask .codeflask__auto-suggestions-list ul {
+  list-style: none;
+  margin: 0;
+	padding: 0;
+}
+
+.codeflask .codeflask__auto-suggestions-list ul li {
+	padding: 3px 5px;
+	border-bottom: 1px solid #eeeeee;
+}
+
+.codeflask .codeflask__auto-suggestions-list ul li.selected {
+	background: beige;
+}
+
+.codeflask .codeflask__auto-suggestions-list ul li .description {
+	float: right;
+	font-size: 80%;
+	opacity: 0.7;
+}
 `;
