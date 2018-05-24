@@ -45,6 +45,10 @@ export const editor_css = `
     display: block;
     font-family: ${FONT_FAMILY};
     overflow: hidden;
+		padding: 0;
+		background: none;
+		margin: 0;
+		border: none;
   }
 
   .codeflask__flatten {
