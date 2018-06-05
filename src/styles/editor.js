@@ -122,6 +122,8 @@ export const editor_css = `
 .codeflask .codeflask__auto-suggestions-list {
 	position: absolute;
   width: 300px;
+	max-height: 100px;
+  overflow-y: scroll;
   font-family: monospace;
   background: #f4f4f4;
 	font-size: 12px;
