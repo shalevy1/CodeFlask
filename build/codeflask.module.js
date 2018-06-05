@@ -1,1 +1,1744 @@
-var BACKGROUND_COLOR="#fff",LINE_HEIGHT="20px",FONT_SIZE="13px",default_css_theme="\n.codeflask {\n  background: "+BACKGROUND_COLOR+";\n  color: #4f559c;\n}\n\n.codeflask .token.punctuation {\n  color: #4a4a4a;\n}\n\n.codeflask .token.keyword {\n  color: #8500ff;\n}\n\n.codeflask .token.operator {\n  color: #ff5598;\n}\n\n.codeflask .token.string {\n  color: #41ad8f;\n}\n\n.codeflask .token.comment {\n  color: #9badb7;\n}\n\n.codeflask .token.function {\n  color: #8500ff;\n}\n\n.codeflask .token.boolean {\n  color: #8500ff;\n}\n\n.codeflask .token.number {\n  color: #8500ff;\n}\n\n.codeflask .token.selector {\n  color: #8500ff;\n}\n\n.codeflask .token.property {\n  color: #8500ff;\n}\n\n.codeflask .token.tag {\n  color: #8500ff;\n}\n\n.codeflask .token.attr-value {\n  color: #8500ff;\n}\n",FONT_FAMILY='"SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace',COLOR=CSS.supports("caret-color","#000")?BACKGROUND_COLOR:"#ccc",LINE_NUMBER_WIDTH="40px",editor_css="\n  .codeflask {\n    position: absolute;\n    width: 100%;\n    height: 100%;\n    overflow: hidden;\n  }\n\n  .codeflask, .codeflask * {\n    box-sizing: border-box;\n  }\n\n  .codeflask__pre {\n    pointer-events: none;\n    z-index: 3;\n    overflow: hidden;\n  }\n\n  .codeflask__textarea {\n    background: none;\n    border: none;\n    color: "+COLOR+";\n    z-index: 1;\n    resize: none;\n    font-family: "+FONT_FAMILY+";\n    -webkit-appearance: pre;\n    caret-color: #111;\n    z-index: 2;\n    width: 100%;\n    height: 100%;\n  }\n\n  .codeflask--has-line-numbers .codeflask__textarea {\n    width: calc(100% - "+LINE_NUMBER_WIDTH+");\n  }\n\n  .codeflask__code {\n    display: block;\n    font-family: "+FONT_FAMILY+";\n    overflow: hidden;\n\t\tpadding: 0;\n\t\tbackground: none;\n\t\tmargin: 0;\n\t\tborder: none;\n  }\n\n  .codeflask__flatten {\n    padding: 10px;\n    font-size: "+FONT_SIZE+";\n    line-height: "+LINE_HEIGHT+";\n    white-space: pre;\n    position: absolute;\n    top: 0;\n    left: 0;\n    overflow: auto;\n    margin: 0 !important;\n    outline: none;\n    text-align: left;\n  }\n\n  .codeflask__flatten.word-wrap {\n    white-space: pre-wrap;\n    word-wrap: break-word;\n  }\n\n  .codeflask--has-line-numbers .codeflask__flatten {\n    width: calc(100% - "+LINE_NUMBER_WIDTH+");\n    left: "+LINE_NUMBER_WIDTH+";\n  }\n\n  .codeflask__line-highlight {\n    position: absolute;\n    top: 10px;\n    left: 0;\n    width: 100%;\n    height: "+LINE_HEIGHT+";\n    background: rgba(0,0,0,0.1);\n    z-index: 1;\n  }\n\n  .codeflask__lines {\n    padding: 10px 4px;\n    font-size: 12px;\n    line-height: "+LINE_HEIGHT+";\n    font-family: 'Cousine', monospace;\n    position: absolute;\n    left: 0;\n    top: 0;\n    width: "+LINE_NUMBER_WIDTH+";\n    height: 100%;\n    text-align: right;\n    color: #999;\n    z-index: 2;\n  }\n\n  .codeflask__lines__line {\n    display: block;\n  }\n\n  .codeflask.codeflask--has-line-numbers {\n    padding-left: "+LINE_NUMBER_WIDTH+";\n  }\n\n  .codeflask.codeflask--has-line-numbers:before {\n    content: '';\n    position: absolute;\n    left: 0;\n    top: 0;\n    width: "+LINE_NUMBER_WIDTH+";\n    height: 100%;\n    background: #eee;\n    z-index: 1;\n  }\n\n.codeflask .codeflask__auto-suggestions-list {\n\tposition: absolute;\n  width: 300px;\n  font-family: monospace;\n  background: #f4f4f4;\n\tfont-size: 12px;\n\tborder: 1px solid #eeeeee;\n\tz-index: 10;\n}\n\n.codeflask .codeflask__auto-suggestions-list ul {\n  list-style: none;\n  margin: 0;\n\tpadding: 0;\n}\n\n.codeflask .codeflask__auto-suggestions-list ul li {\n\tpadding: 3px 5px;\n\tborder-bottom: 1px solid #eeeeee;\n}\n\n.codeflask .codeflask__auto-suggestions-list ul li.selected {\n\tbackground: beige;\n}\n\n.codeflask .codeflask__auto-suggestions-list ul li .description {\n\tfloat: right;\n\tfont-size: 80%;\n\topacity: 0.7;\n}\n";function inject_css(e,t,n){var a=t||"codeflask-style",o=n||document.head;if(!e)return!1;if(document.getElementById(a))return!0;var s=document.createElement("style");return s.innerHTML=e,s.id=a,o.appendChild(s),!0}var entityMap={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;","/":"&#x2F;","`":"&#x60;","=":"&#x3D;"};function escape_html(e){return String(e).replace(/[&<>"'`=\/]/g,function(e){return entityMap[e]})}var commonjsGlobal="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:{};function createCommonjsModule(e,t){return e(t={exports:{}},t.exports),t.exports}var cursorCoordinates=createCommonjsModule(function(e){!function(){var t=["direction","boxSizing","width","height","overflowX","overflowY","borderTopWidth","borderRightWidth","borderBottomWidth","borderLeftWidth","borderStyle","paddingTop","paddingRight","paddingBottom","paddingLeft","fontStyle","fontVariant","fontWeight","fontStretch","fontSize","fontSizeAdjust","lineHeight","fontFamily","textAlign","textTransform","textIndent","textDecoration","letterSpacing","wordSpacing","tabSize","MozTabSize"],n="undefined"!=typeof window,a=n&&null!=window.mozInnerScreenX;e.exports=function(e,o,s){if(!n)throw new Error("textarea-caret-position#getCaretCoordinates should only be called in a browser");var i=s&&s.debug||!1;if(i){var r=document.querySelector("#input-textarea-caret-position-mirror-div");r&&r.parentNode.removeChild(r)}var l=document.createElement("div");l.id="input-textarea-caret-position-mirror-div",document.body.appendChild(l);var u=l.style,d=window.getComputedStyle?window.getComputedStyle(e):e.currentStyle,c="INPUT"===e.nodeName;u.whiteSpace="pre-wrap",c||(u.wordWrap="break-word"),u.position="absolute",i||(u.visibility="hidden"),t.forEach(function(e){c&&"lineHeight"===e?u.lineHeight=d.height:u[e]=d[e]}),a?e.scrollHeight>parseInt(d.height)&&(u.overflowY="scroll"):u.overflow="hidden",l.textContent=e.value.substring(0,o),c&&(l.textContent=l.textContent.replace(/\s/g," "));var g=document.createElement("span");g.textContent=e.value.substring(o)||".",l.appendChild(g);var p={top:g.offsetTop+parseInt(d.borderTopWidth),left:g.offsetLeft+parseInt(d.borderLeftWidth),height:parseInt(d.lineHeight)};return i?g.style.backgroundColor="#aaa":document.body.removeChild(l),p}}()}),prism=createCommonjsModule(function(e){var t="undefined"!=typeof window?window:"undefined"!=typeof WorkerGlobalScope&&self instanceof WorkerGlobalScope?self:{},n=function(){var e=/\blang(?:uage)?-([\w-]+)\b/i,n=0,a=t.Prism={manual:t.Prism&&t.Prism.manual,disableWorkerMessageHandler:t.Prism&&t.Prism.disableWorkerMessageHandler,util:{encode:function(e){return e instanceof o?new o(e.type,a.util.encode(e.content),e.alias):"Array"===a.util.type(e)?e.map(a.util.encode):e.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/\u00a0/g," ")},type:function(e){return Object.prototype.toString.call(e).match(/\[object (\w+)\]/)[1]},objId:function(e){return e.__id||Object.defineProperty(e,"__id",{value:++n}),e.__id},clone:function(e,t){var n=a.util.type(e);switch(t=t||{},n){case"Object":if(t[a.util.objId(e)])return t[a.util.objId(e)];var o={};for(var s in t[a.util.objId(e)]=o,e)e.hasOwnProperty(s)&&(o[s]=a.util.clone(e[s],t));return o;case"Array":if(t[a.util.objId(e)])return t[a.util.objId(e)];o=[];return t[a.util.objId(e)]=o,e.forEach(function(e,n){o[n]=a.util.clone(e,t)}),o}return e}},languages:{extend:function(e,t){var n=a.util.clone(a.languages[e]);for(var o in t)n[o]=t[o];return n},insertBefore:function(e,t,n,o){var s=(o=o||a.languages)[e];if(2==arguments.length){for(var i in n=arguments[1])n.hasOwnProperty(i)&&(s[i]=n[i]);return s}var r={};for(var l in s)if(s.hasOwnProperty(l)){if(l==t)for(var i in n)n.hasOwnProperty(i)&&(r[i]=n[i]);r[l]=s[l]}return a.languages.DFS(a.languages,function(t,n){n===o[e]&&t!=e&&(this[t]=r)}),o[e]=r},DFS:function(e,t,n,o){for(var s in o=o||{},e)e.hasOwnProperty(s)&&(t.call(e,s,e[s],n||s),"Object"!==a.util.type(e[s])||o[a.util.objId(e[s])]?"Array"!==a.util.type(e[s])||o[a.util.objId(e[s])]||(o[a.util.objId(e[s])]=!0,a.languages.DFS(e[s],t,s,o)):(o[a.util.objId(e[s])]=!0,a.languages.DFS(e[s],t,null,o)))}},plugins:{},highlightAll:function(e,t){a.highlightAllUnder(document,e,t)},highlightAllUnder:function(e,t,n){var o={callback:n,selector:'code[class*="language-"], [class*="language-"] code, code[class*="lang-"], [class*="lang-"] code'};a.hooks.run("before-highlightall",o);for(var s,i=o.elements||e.querySelectorAll(o.selector),r=0;s=i[r++];)a.highlightElement(s,!0===t,o.callback)},highlightElement:function(n,o,s){for(var i,r,l=n;l&&!e.test(l.className);)l=l.parentNode;l&&(i=(l.className.match(e)||[,""])[1].toLowerCase(),r=a.languages[i]),n.className=n.className.replace(e,"").replace(/\s+/g," ")+" language-"+i,n.parentNode&&(l=n.parentNode,/pre/i.test(l.nodeName)&&(l.className=l.className.replace(e,"").replace(/\s+/g," ")+" language-"+i));var u={element:n,language:i,grammar:r,code:n.textContent};if(a.hooks.run("before-sanity-check",u),!u.code||!u.grammar)return u.code&&(a.hooks.run("before-highlight",u),u.element.textContent=u.code,a.hooks.run("after-highlight",u)),void a.hooks.run("complete",u);if(a.hooks.run("before-highlight",u),o&&t.Worker){var d=new Worker(a.filename);d.onmessage=function(e){u.highlightedCode=e.data,a.hooks.run("before-insert",u),u.element.innerHTML=u.highlightedCode,s&&s.call(u.element),a.hooks.run("after-highlight",u),a.hooks.run("complete",u)},d.postMessage(JSON.stringify({language:u.language,code:u.code,immediateClose:!0}))}else u.highlightedCode=a.highlight(u.code,u.grammar,u.language),a.hooks.run("before-insert",u),u.element.innerHTML=u.highlightedCode,s&&s.call(n),a.hooks.run("after-highlight",u),a.hooks.run("complete",u)},highlight:function(e,t,n){var s={code:e,grammar:t,language:n};return a.hooks.run("before-tokenize",s),s.tokens=a.tokenize(s.code,s.grammar),a.hooks.run("after-tokenize",s),o.stringify(a.util.encode(s.tokens),s.language)},matchGrammar:function(e,t,n,o,s,i,r){var l=a.Token;for(var u in n)if(n.hasOwnProperty(u)&&n[u]){if(u==r)return;var d=n[u];d="Array"===a.util.type(d)?d:[d];for(var c=0;c<d.length;++c){var g=d[c],p=g.inside,h=!!g.lookbehind,f=!!g.greedy,m=0,k=g.alias;if(f&&!g.pattern.global){var b=g.pattern.toString().match(/[imuy]*$/)[0];g.pattern=RegExp(g.pattern.source,b+"g")}g=g.pattern||g;for(var y=o,S=s;y<t.length;S+=t[y].length,++y){var x=t[y];if(t.length>e.length)return;if(!(x instanceof l)){if(f&&y!=t.length-1){if(g.lastIndex=S,!(A=g.exec(e)))break;for(var C=A.index+(h?A[1].length:0),v=A.index+A[0].length,w=y,F=S,_=t.length;w<_&&(F<v||!t[w].type&&!t[w-1].greedy);++w)C>=(F+=t[w].length)&&(++y,S=F);if(t[y]instanceof l)continue;L=w-y,x=e.slice(S,F),A.index-=S}else{g.lastIndex=0;var A=g.exec(x),L=1}if(A){h&&(m=A[1]?A[1].length:0);v=(C=A.index+m)+(A=A[0].slice(m)).length;var T=x.slice(0,C),E=x.slice(v),N=[y,L];T&&(++y,S+=T.length,N.push(T));var I=new l(u,p?a.tokenize(A,p):A,k,A,f);if(N.push(I),E&&N.push(E),Array.prototype.splice.apply(t,N),1!=L&&a.matchGrammar(e,t,n,y,S,!0,u),i)break}else if(i)break}}}}},tokenize:function(e,t,n){var o=[e],s=t.rest;if(s){for(var i in s)t[i]=s[i];delete t.rest}return a.matchGrammar(e,o,t,0,0,!1),o},hooks:{all:{},add:function(e,t){var n=a.hooks.all;n[e]=n[e]||[],n[e].push(t)},run:function(e,t){var n=a.hooks.all[e];if(n&&n.length)for(var o,s=0;o=n[s++];)o(t)}}},o=a.Token=function(e,t,n,a,o){this.type=e,this.content=t,this.alias=n,this.length=0|(a||"").length,this.greedy=!!o};if(o.stringify=function(e,t,n){if("string"==typeof e)return e;if("Array"===a.util.type(e))return e.map(function(n){return o.stringify(n,t,e)}).join("");var s={type:e.type,content:o.stringify(e.content,t,n),tag:"span",classes:["token",e.type],attributes:{},language:t,parent:n};if(e.alias){var i="Array"===a.util.type(e.alias)?e.alias:[e.alias];Array.prototype.push.apply(s.classes,i)}a.hooks.run("wrap",s);var r=Object.keys(s.attributes).map(function(e){return e+'="'+(s.attributes[e]||"").replace(/"/g,"&quot;")+'"'}).join(" ");return"<"+s.tag+' class="'+s.classes.join(" ")+'"'+(r?" "+r:"")+">"+s.content+"</"+s.tag+">"},!t.document)return t.addEventListener?(a.disableWorkerMessageHandler||t.addEventListener("message",function(e){var n=JSON.parse(e.data),o=n.language,s=n.code,i=n.immediateClose;t.postMessage(a.highlight(s,a.languages[o],o)),i&&t.close()},!1),t.Prism):t.Prism;var s=document.currentScript||[].slice.call(document.getElementsByTagName("script")).pop();return s&&(a.filename=s.src,a.manual||s.hasAttribute("data-manual")||("loading"!==document.readyState?window.requestAnimationFrame?window.requestAnimationFrame(a.highlightAll):window.setTimeout(a.highlightAll,16):document.addEventListener("DOMContentLoaded",a.highlightAll))),t.Prism}();e.exports&&(e.exports=n),void 0!==commonjsGlobal&&(commonjsGlobal.Prism=n),n.languages.markup={comment:/<!--[\s\S]*?-->/,prolog:/<\?[\s\S]+?\?>/,doctype:/<!DOCTYPE[\s\S]+?>/i,cdata:/<!\[CDATA\[[\s\S]*?]]>/i,tag:{pattern:/<\/?(?!\d)[^\s>\/=$<%]+(?:\s+[^\s>\/=]+(?:=(?:("|')(?:\\[\s\S]|(?!\1)[^\\])*\1|[^\s'">=]+))?)*\s*\/?>/i,greedy:!0,inside:{tag:{pattern:/^<\/?[^\s>\/]+/i,inside:{punctuation:/^<\/?/,namespace:/^[^\s>\/:]+:/}},"attr-value":{pattern:/=(?:("|')(?:\\[\s\S]|(?!\1)[^\\])*\1|[^\s'">=]+)/i,inside:{punctuation:[/^=/,{pattern:/(^|[^\\])["']/,lookbehind:!0}]}},punctuation:/\/?>/,"attr-name":{pattern:/[^\s>\/]+/,inside:{namespace:/^[^\s>\/:]+:/}}}},entity:/&#?[\da-z]{1,8};/i},n.languages.markup.tag.inside["attr-value"].inside.entity=n.languages.markup.entity,n.hooks.add("wrap",function(e){"entity"===e.type&&(e.attributes.title=e.content.replace(/&amp;/,"&"))}),n.languages.xml=n.languages.markup,n.languages.html=n.languages.markup,n.languages.mathml=n.languages.markup,n.languages.svg=n.languages.markup,n.languages.css={comment:/\/\*[\s\S]*?\*\//,atrule:{pattern:/@[\w-]+?.*?(?:;|(?=\s*\{))/i,inside:{rule:/@[\w-]+/}},url:/url\((?:(["'])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1|.*?)\)/i,selector:/[^{}\s][^{};]*?(?=\s*\{)/,string:{pattern:/("|')(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,greedy:!0},property:/[-_a-z\xA0-\uFFFF][-\w\xA0-\uFFFF]*(?=\s*:)/i,important:/\B!important\b/i,function:/[-a-z0-9]+(?=\()/i,punctuation:/[(){};:]/},n.languages.css.atrule.inside.rest=n.languages.css,n.languages.markup&&(n.languages.insertBefore("markup","tag",{style:{pattern:/(<style[\s\S]*?>)[\s\S]*?(?=<\/style>)/i,lookbehind:!0,inside:n.languages.css,alias:"language-css",greedy:!0}}),n.languages.insertBefore("inside","attr-value",{"style-attr":{pattern:/\s*style=("|')(?:\\[\s\S]|(?!\1)[^\\])*\1/i,inside:{"attr-name":{pattern:/^\s*style/i,inside:n.languages.markup.tag.inside},punctuation:/^\s*=\s*['"]|['"]\s*$/,"attr-value":{pattern:/.+/i,inside:n.languages.css}},alias:"language-css"}},n.languages.markup.tag)),n.languages.clike={comment:[{pattern:/(^|[^\\])\/\*[\s\S]*?(?:\*\/|$)/,lookbehind:!0},{pattern:/(^|[^\\:])\/\/.*/,lookbehind:!0,greedy:!0}],string:{pattern:/(["'])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,greedy:!0},"class-name":{pattern:/((?:\b(?:class|interface|extends|implements|trait|instanceof|new)\s+)|(?:catch\s+\())[\w.\\]+/i,lookbehind:!0,inside:{punctuation:/[.\\]/}},keyword:/\b(?:if|else|while|do|for|return|in|instanceof|function|new|try|throw|catch|finally|null|break|continue)\b/,boolean:/\b(?:true|false)\b/,function:/[a-z0-9_]+(?=\()/i,number:/\b0x[\da-f]+\b|(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,operator:/--?|\+\+?|!=?=?|<=?|>=?|==?=?|&&?|\|\|?|\?|\*|\/|~|\^|%/,punctuation:/[{}[\];(),.:]/},n.languages.javascript=n.languages.extend("clike",{keyword:/\b(?:as|async|await|break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|finally|for|from|function|get|if|implements|import|in|instanceof|interface|let|new|null|of|package|private|protected|public|return|set|static|super|switch|this|throw|try|typeof|var|void|while|with|yield)\b/,number:/\b(?:0[xX][\dA-Fa-f]+|0[bB][01]+|0[oO][0-7]+|NaN|Infinity)\b|(?:\b\d+\.?\d*|\B\.\d+)(?:[Ee][+-]?\d+)?/,function:/[_$a-z\xA0-\uFFFF][$\w\xA0-\uFFFF]*(?=\s*\()/i,operator:/-[-=]?|\+[+=]?|!=?=?|<<?=?|>>?>?=?|=(?:==?|>)?|&[&=]?|\|[|=]?|\*\*?=?|\/=?|~|\^=?|%=?|\?|\.{3}/}),n.languages.insertBefore("javascript","keyword",{regex:{pattern:/((?:^|[^$\w\xA0-\uFFFF."'\])\s])\s*)\/(\[[^\]\r\n]+]|\\.|[^/\\\[\r\n])+\/[gimyu]{0,5}(?=\s*($|[\r\n,.;})]))/,lookbehind:!0,greedy:!0},"function-variable":{pattern:/[_$a-z\xA0-\uFFFF][$\w\xA0-\uFFFF]*(?=\s*=\s*(?:function\b|(?:\([^()]*\)|[_$a-z\xA0-\uFFFF][$\w\xA0-\uFFFF]*)\s*=>))/i,alias:"function"},constant:/\b[A-Z][A-Z\d_]*\b/}),n.languages.insertBefore("javascript","string",{"template-string":{pattern:/`(?:\\[\s\S]|[^\\`])*`/,greedy:!0,inside:{interpolation:{pattern:/\$\{[^}]+\}/,inside:{"interpolation-punctuation":{pattern:/^\$\{|\}$/,alias:"punctuation"},rest:n.languages.javascript}},string:/[\s\S]+/}}}),n.languages.markup&&n.languages.insertBefore("markup","tag",{script:{pattern:/(<script[\s\S]*?>)[\s\S]*?(?=<\/script>)/i,lookbehind:!0,inside:n.languages.javascript,alias:"language-javascript",greedy:!0}}),n.languages.js=n.languages.javascript,"undefined"!=typeof self&&self.Prism&&self.document&&document.querySelector&&(self.Prism.fileHighlight=function(){var e={js:"javascript",py:"python",rb:"ruby",ps1:"powershell",psm1:"powershell",sh:"bash",bat:"batch",h:"c",tex:"latex"};Array.prototype.slice.call(document.querySelectorAll("pre[data-src]")).forEach(function(t){for(var a,o=t.getAttribute("data-src"),s=t,i=/\blang(?:uage)?-(?!\*)([\w-]+)\b/i;s&&!i.test(s.className);)s=s.parentNode;if(s&&(a=(t.className.match(i)||[,""])[1]),!a){var r=(o.match(/\.(\w+)$/)||[,""])[1];a=e[r]||r}var l=document.createElement("code");l.className="language-"+a,t.textContent="",l.textContent="Loading…",t.appendChild(l);var u=new XMLHttpRequest;u.open("GET",o,!0),u.onreadystatechange=function(){4==u.readyState&&(u.status<400&&u.responseText?(l.textContent=u.responseText,n.highlightElement(l)):u.status>=400?l.textContent="✖ Error "+u.status+" while fetching file: "+u.statusText:l.textContent="✖ Error: File does not exist or is empty")},t.hasAttribute("data-download-link")&&n.plugins.toolbar&&n.plugins.toolbar.registerButton("download-file",function(){var e=document.createElement("a");return e.textContent=t.getAttribute("data-download-link-label")||"Download",e.setAttribute("download",""),e.href=o,e}),u.send(null)})},document.addEventListener("DOMContentLoaded",self.Prism.fileHighlight))}),CodeFlask=function(e,t){if(!e)throw Error("CodeFlask expects a parameter which is Element or a String selector");if(!t)throw Error("CodeFlask expects an object containing options as second parameter");if(e.nodeType)this.editorRoot=e;else{var n=document.querySelector(e);n&&(this.editorRoot=n)}this.opts=t,this.startEditor()};CodeFlask.prototype.startEditor=function(){if(!inject_css(editor_css,null,this.opts.styleParent))throw Error("Failed to inject CodeFlask CSS.");this.createWrapper(),this.createTextarea(),this.createPre(),this.createCode(),this.createAutoSugg(),this.runOptions(),this.listenTextarea(),this.populateDefault(),this.updateCode(this.code)},CodeFlask.prototype.createWrapper=function(){this.code=this.editorRoot.innerHTML,this.editorRoot.innerHTML="",this.elWrapper=this.createElement("div",this.editorRoot),this.elWrapper.classList.add("codeflask")},CodeFlask.prototype.createTextarea=function(){this.elTextarea=this.createElement("textarea",this.elWrapper),this.elTextarea.classList.add("codeflask__textarea","codeflask__flatten")},CodeFlask.prototype.createPre=function(){this.elPre=this.createElement("pre",this.elWrapper),this.elPre.classList.add("codeflask__pre","codeflask__flatten")},CodeFlask.prototype.createCode=function(){this.elCode=this.createElement("code",this.elPre),this.elCode.classList.add("codeflask__code","language-"+(this.opts.language||"html"))},CodeFlask.prototype.createLineNumbers=function(){this.elLineNumbers=this.createElement("div",this.elWrapper),this.elLineNumbers.classList.add("codeflask__lines"),this.setLineNumber()},CodeFlask.prototype.createElement=function(e,t){var n=document.createElement(e);return t.appendChild(n),n},CodeFlask.prototype.createAutoSugg=function(){this.elAutoSuggResults=this.createElement("div",this.elWrapper),this.elAutoSuggResults.classList.add("codeflask__auto-suggestions-list"),this.elAutoSuggResults.hidden=!0},CodeFlask.prototype.runOptions=function(){this.opts.rtl=this.opts.rtl||!1,this.opts.tabSize=this.opts.tabSize||2,this.opts.enableAutocorrect=this.opts.enableAutocorrect||!1,this.opts.lineNumbers=this.opts.lineNumbers||!1,this.opts.defaultTheme=!1!==this.opts.defaultTheme,this.opts.wordWrap=this.opts.wordWrap||!1,this.opts.autoSuggestions=this.opts.autoSuggestions||!1,!0===this.opts.rtl&&(this.elTextarea.setAttribute("dir","rtl"),this.elPre.setAttribute("dir","rtl")),!1===this.opts.enableAutocorrect&&(this.elTextarea.setAttribute("spellcheck","false"),this.elTextarea.setAttribute("autocapitalize","off"),this.elTextarea.setAttribute("autocomplete","off"),this.elTextarea.setAttribute("autocorrect","off")),this.opts.lineNumbers&&(this.elWrapper.classList.add("codeflask--has-line-numbers"),this.createLineNumbers()),this.opts.defaultTheme&&inject_css(default_css_theme,"theme-default",this.opts.styleParent),this.opts.wordWrap&&(this.elTextarea.classList.add("word-wrap"),this.elPre.classList.add("word-wrap")),this.defaultThemeOptions={lineHeight:20,fontSize:13},this.opts.themeOptions=Object.assign(this.defaultThemeOptions,this.opts.themeOptions||{})},CodeFlask.prototype.updateLineNumbersCount=function(){for(var e="",t=1;t<=this.lineNumber;t++)e=e+'<span class="codeflask__lines__line">'+t+"</span>";this.elLineNumbers.innerHTML=e},CodeFlask.prototype.listenTextarea=function(){var e=this;this.elTextarea.addEventListener("input",function(t){e.code=t.target.value,e.elCode.innerHTML=escape_html(t.target.value),e.highlight(),setTimeout(function(){e.runUpdate(),e.setLineNumber()},1)}),this.elTextarea.addEventListener("keydown",function(t){e.handleTabs(t),e.handleSelfClosingCharacters(t),e.handleNewLineIndentation(t),e.handleAutoSuggKeysDown(t)}),this.elTextarea.addEventListener("scroll",function(t){e.elPre.style.transform="translate3d(-"+t.target.scrollLeft+"px, -"+t.target.scrollTop+"px, 0)",e.elLineNumbers&&(e.elLineNumbers.style.transform="translate3d(0, -"+t.target.scrollTop+"px, 0)")})},CodeFlask.prototype.handleTabs=function(e){if(9===e.keyCode){e.preventDefault();e.keyCode;var t=this.elTextarea.selectionStart,n=this.elTextarea.selectionEnd,a=""+this.code.substring(0,t)+" ".repeat(this.opts.tabSize)+this.code.substring(n);this.updateCode(a),this.elTextarea.selectionEnd=n+this.opts.tabSize}},CodeFlask.prototype.handleSelfClosingCharacters=function(e){var t=e.key;if(["(","[","{","<"].includes(t))switch(t){case"(":this.closeCharacter(")");break;case"[":this.closeCharacter("]");break;case"{":this.closeCharacter("}");break;case"<":this.closeCharacter(">")}},CodeFlask.prototype.setLineNumber=function(){this.lineNumber=this.code.split("\n").length,this.opts.lineNumbers&&this.updateLineNumbersCount()},CodeFlask.prototype.handleNewLineIndentation=function(e){e.keyCode},CodeFlask.prototype.setAutoSuggestionsResults=function(e){e&&e.length>0?(this.autoSuggestionsList=e,this.createAutoSuggResults(e),this.updateAutoSuggResultsCoordinates(),this.setAutoSuggSelected(this.autoSuggSelectedIndex||0),this.showAutoSuggResults()):this.hideAutoSuggResults()},CodeFlask.prototype.onAutoSuggestionsSelect=function(e){if(e&&"[object Function]"!=={}.toString.call(e))throw Error("CodeFlask expects callback of type Function");this.onAutoSuggSelectCallback=e},CodeFlask.prototype.handleAutoSuggKeysDown=function(e){if(-1!==[38,40,13,9].indexOf(e.keyCode)&&!this.elAutoSuggResults.hidden&&this.autoSuggestionsList){if(e.stopPropagation(),e.preventDefault(),13===e.keyCode){var t=this.elAutoSuggResults.querySelectorAll("li");t[this.autoSuggSelectedIndex]&&this.triggerAutoSuggSelect(t[this.autoSuggSelectedIndex])}var n=this.getAutoSuggSelected();null!==n&&38===e.keyCode?0===n?n=this.autoSuggestionsList.length-1:n-=1:null!==n&&40===e.keyCode?n===this.autoSuggestionsList.length-1?n=0:n+=1:n=0,this.setAutoSuggSelected(n)}},CodeFlask.prototype.getAutoSuggSelected=function(){var e=this.elAutoSuggResults.querySelector("li.selected");return e?parseInt(e.getAttribute("idx")):null},CodeFlask.prototype.setAutoSuggSelected=function(e){var t=this.elAutoSuggResults.querySelectorAll("li");t[e]&&(t.forEach(function(e){e.classList.remove("selected")}),t[e].classList.add("selected"),this.autoSuggSelectedIndex=e)},CodeFlask.prototype.createAutoSuggResults=function(e){for(var t=this,n="",a=0;a<e.length;a++){var o=e[a];n+='<li class="index-'+a+'" idx="'+a+'"><span class="title">'+o.title+'</span><span class="description">'+o.description+"</span>"}this.elAutoSuggResults.innerHTML="<ul>"+n+"</ul>",this.elAutoSuggResults.querySelectorAll("li").forEach(function(e){e.addEventListener("click",function(e){var n=e.target;"SPAN"===e.target.tagName&&(n=e.target.parentNode),t.triggerAutoSuggSelect(n)})})},CodeFlask.prototype.triggerAutoSuggSelect=function(e){this.onAutoSuggSelectCallback&&this.onAutoSuggSelectCallback(this.autoSuggestionsList[parseInt(e.getAttribute("idx"))])},CodeFlask.prototype.showAutoSuggResults=function(){this.elAutoSuggResults.hidden=!1},CodeFlask.prototype.hideAutoSuggResults=function(){this.elAutoSuggResults.hidden=!0},CodeFlask.prototype.updateAutoSuggResultsCoordinates=function(e){e=e||this.elTextarea.selectionEnd;var t=cursorCoordinates(this.elTextarea,e);this.elAutoSuggResults.style.top=t.top+this.opts.themeOptions.lineHeight+"px",this.elAutoSuggResults.style.left=t.left+"px"},CodeFlask.prototype.closeCharacter=function(e,t){var n=this;t=t||1;var a=this.elTextarea.selectionStart,o=this.elTextarea.selectionEnd,s=""+this.code.substring(0,a)+e+this.code.substring(o);this.updateCode(s),this.elTextarea.selectionEnd=o,t>1&&setTimeout(function(){n.elTextarea.selectionEnd=n.elTextarea.selectionStart=n.code.substring(0,a).length+t},2)},CodeFlask.prototype.updateCode=function(e){this.code=e,this.elTextarea.value=e,this.elCode.innerHTML=escape_html(e),this.highlight(),setTimeout(this.runUpdate,1)},CodeFlask.prototype.updateLanguage=function(e){var t=this.opts.language;this.elCode.classList.remove("language-"+t),this.elCode.classList.add("language-"+e),this.opts.language=e,this.highlight()},CodeFlask.prototype.addLanguage=function(e,t){prism.languages[e]=t},CodeFlask.prototype.populateDefault=function(){this.updateCode(this.code)},CodeFlask.prototype.highlight=function(){prism.highlightElement(this.elCode,!1)},CodeFlask.prototype.onUpdate=function(e){if(e&&"[object Function]"!=={}.toString.call(e))throw Error("CodeFlask expects callback of type Function");this.updateCallBack=e},CodeFlask.prototype.getCode=function(){return this.code},CodeFlask.prototype.runUpdate=function(){this.updateCallBack&&this.updateCallBack(this.code)};export default CodeFlask;
+const BACKGROUND_COLOR = '#fff';
+const LINE_HEIGHT = '20px';
+const FONT_SIZE = '13px';
+
+const default_css_theme = `
+.codeflask {
+  background: ${BACKGROUND_COLOR};
+  color: #4f559c;
+}
+
+.codeflask .token.punctuation {
+  color: #4a4a4a;
+}
+
+.codeflask .token.keyword {
+  color: #8500ff;
+}
+
+.codeflask .token.operator {
+  color: #ff5598;
+}
+
+.codeflask .token.string {
+  color: #41ad8f;
+}
+
+.codeflask .token.comment {
+  color: #9badb7;
+}
+
+.codeflask .token.function {
+  color: #8500ff;
+}
+
+.codeflask .token.boolean {
+  color: #8500ff;
+}
+
+.codeflask .token.number {
+  color: #8500ff;
+}
+
+.codeflask .token.selector {
+  color: #8500ff;
+}
+
+.codeflask .token.property {
+  color: #8500ff;
+}
+
+.codeflask .token.tag {
+  color: #8500ff;
+}
+
+.codeflask .token.attr-value {
+  color: #8500ff;
+}
+`;
+
+const FONT_FAMILY = `"SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace`;
+const COLOR = (CSS.supports('caret-color', '#000')) ? BACKGROUND_COLOR : '#ccc';
+const LINE_NUMBER_WIDTH = '40px';
+
+
+const editor_css = `
+  .codeflask {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .codeflask, .codeflask * {
+    box-sizing: border-box;
+  }
+
+  .codeflask__pre {
+    pointer-events: none;
+    z-index: 3;
+    overflow: hidden;
+  }
+
+  .codeflask__textarea {
+    background: none;
+    border: none;
+    color: ${COLOR};
+    z-index: 1;
+    resize: none;
+    font-family: ${FONT_FAMILY};
+    -webkit-appearance: pre;
+    caret-color: #111;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+  }
+
+  .codeflask--has-line-numbers .codeflask__textarea {
+    width: calc(100% - ${LINE_NUMBER_WIDTH});
+  }
+
+  .codeflask__code {
+    display: block;
+    font-family: ${FONT_FAMILY};
+    overflow: hidden;
+		padding: 0;
+		background: none;
+		margin: 0;
+		border: none;
+  }
+
+  .codeflask__flatten {
+    padding: 10px;
+    font-size: ${FONT_SIZE};
+    line-height: ${LINE_HEIGHT};
+    white-space: pre;
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: auto;
+    margin: 0 !important;
+    outline: none;
+    text-align: left;
+  }
+
+  .codeflask__flatten.word-wrap {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .codeflask--has-line-numbers .codeflask__flatten {
+    width: calc(100% - ${LINE_NUMBER_WIDTH});
+    left: ${LINE_NUMBER_WIDTH};
+  }
+
+  .codeflask__line-highlight {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    width: 100%;
+    height: ${LINE_HEIGHT};
+    background: rgba(0,0,0,0.1);
+    z-index: 1;
+  }
+
+  .codeflask__lines {
+    padding: 10px 4px;
+    font-size: 12px;
+    line-height: ${LINE_HEIGHT};
+    font-family: 'Cousine', monospace;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: ${LINE_NUMBER_WIDTH};
+    height: 100%;
+    text-align: right;
+    color: #999;
+    z-index: 2;
+  }
+
+  .codeflask__lines__line {
+    display: block;
+  }
+
+  .codeflask.codeflask--has-line-numbers {
+    padding-left: ${LINE_NUMBER_WIDTH};
+  }
+
+  .codeflask.codeflask--has-line-numbers:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: ${LINE_NUMBER_WIDTH};
+    height: 100%;
+    background: #eee;
+    z-index: 1;
+  }
+
+.codeflask .codeflask__auto-suggestions-list {
+	position: absolute;
+  width: 300px;
+	max-height: 100px;
+  overflow-y: scroll;
+  font-family: monospace;
+  background: #f4f4f4;
+	font-size: 12px;
+	border: 1px solid #eeeeee;
+	z-index: 10;
+}
+
+.codeflask .codeflask__auto-suggestions-list ul {
+  list-style: none;
+  margin: 0;
+	padding: 0;
+}
+
+.codeflask .codeflask__auto-suggestions-list ul li {
+	padding: 3px 5px;
+	border-bottom: 1px solid #eeeeee;
+}
+
+.codeflask .codeflask__auto-suggestions-list ul li.selected {
+	background: beige;
+}
+
+.codeflask .codeflask__auto-suggestions-list ul li .description {
+	float: right;
+	font-size: 80%;
+	opacity: 0.7;
+}
+`;
+
+function inject_css(css, styleName, parent) {
+  const CSS_ID = styleName || 'codeflask-style';
+  const PARENT = parent || document.head;
+
+  if (!css) {
+    return false;
+  }
+
+  if (document.getElementById(CSS_ID)) {
+    return true;
+  }
+
+  const style = document.createElement('style');
+
+  style.innerHTML = css;
+  style.id = CSS_ID;
+  PARENT.appendChild(style);
+
+  return true;
+}
+
+const entityMap = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+  '/': '&#x2F;',
+  '`': '&#x60;',
+  '=': '&#x3D;'
+};
+
+function escape_html (string) {
+  return String(string).replace(/[&<>"'`=\/]/g, function (s) {
+    return entityMap[s];
+  });
+}
+
+var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+function createCommonjsModule(fn, module) {
+	return module = { exports: {} }, fn(module, module.exports), module.exports;
+}
+
+var cursorCoordinates = createCommonjsModule(function (module) {
+/* jshint browser: true */
+
+(function () {
+
+  // We'll copy the properties below into the mirror div.
+  // Note that some browsers, such as Firefox, do not concatenate properties
+  // into their shorthand (e.g. padding-top, padding-bottom etc. -> padding),
+  // so we have to list every single property explicitly.
+  var properties = [
+    'direction',  // RTL support
+    'boxSizing',
+    'width',  // on Chrome and IE, exclude the scrollbar, so the mirror div wraps exactly as the textarea does
+    'height',
+    'overflowX',
+    'overflowY',  // copy the scrollbar for IE
+
+    'borderTopWidth',
+    'borderRightWidth',
+    'borderBottomWidth',
+    'borderLeftWidth',
+    'borderStyle',
+
+    'paddingTop',
+    'paddingRight',
+    'paddingBottom',
+    'paddingLeft',
+
+    // https://developer.mozilla.org/en-US/docs/Web/CSS/font
+    'fontStyle',
+    'fontVariant',
+    'fontWeight',
+    'fontStretch',
+    'fontSize',
+    'fontSizeAdjust',
+    'lineHeight',
+    'fontFamily',
+
+    'textAlign',
+    'textTransform',
+    'textIndent',
+    'textDecoration',  // might not make a difference, but better be safe
+
+    'letterSpacing',
+    'wordSpacing',
+
+    'tabSize',
+    'MozTabSize'
+
+  ];
+
+  var isBrowser = (typeof window !== 'undefined');
+  var isFirefox = (isBrowser && window.mozInnerScreenX != null);
+
+  function getCaretCoordinates(element, position, options) {
+    if (!isBrowser) {
+      throw new Error('textarea-caret-position#getCaretCoordinates should only be called in a browser');
+    }
+
+    var debug = options && options.debug || false;
+    if (debug) {
+      var el = document.querySelector('#input-textarea-caret-position-mirror-div');
+      if (el) el.parentNode.removeChild(el);
+    }
+
+    // The mirror div will replicate the textarea's style
+    var div = document.createElement('div');
+    div.id = 'input-textarea-caret-position-mirror-div';
+    document.body.appendChild(div);
+
+    var style = div.style;
+    var computed = window.getComputedStyle ? window.getComputedStyle(element) : element.currentStyle;  // currentStyle for IE < 9
+    var isInput = element.nodeName === 'INPUT';
+
+    // Default textarea styles
+    style.whiteSpace = 'pre-wrap';
+    if (!isInput)
+      style.wordWrap = 'break-word';  // only for textarea-s
+
+    // Position off-screen
+    style.position = 'absolute';  // required to return coordinates properly
+    if (!debug)
+      style.visibility = 'hidden';  // not 'display: none' because we want rendering
+
+    // Transfer the element's properties to the div
+    properties.forEach(function (prop) {
+      if (isInput && prop === 'lineHeight') {
+        // Special case for <input>s because text is rendered centered and line height may be != height
+        style.lineHeight = computed.height;
+      } else {
+        style[prop] = computed[prop];
+      }
+    });
+
+    if (isFirefox) {
+      // Firefox lies about the overflow property for textareas: https://bugzilla.mozilla.org/show_bug.cgi?id=984275
+      if (element.scrollHeight > parseInt(computed.height))
+        style.overflowY = 'scroll';
+    } else {
+      style.overflow = 'hidden';  // for Chrome to not render a scrollbar; IE keeps overflowY = 'scroll'
+    }
+
+    div.textContent = element.value.substring(0, position);
+    // The second special handling for input type="text" vs textarea:
+    // spaces need to be replaced with non-breaking spaces - http://stackoverflow.com/a/13402035/1269037
+    if (isInput)
+      div.textContent = div.textContent.replace(/\s/g, '\u00a0');
+
+    var span = document.createElement('span');
+    // Wrapping must be replicated *exactly*, including when a long word gets
+    // onto the next line, with whitespace at the end of the line before (#7).
+    // The  *only* reliable way to do that is to copy the *entire* rest of the
+    // textarea's content into the <span> created at the caret position.
+    // For inputs, just '.' would be enough, but no need to bother.
+    span.textContent = element.value.substring(position) || '.';  // || because a completely empty faux span doesn't render at all
+    div.appendChild(span);
+
+    var coordinates = {
+      top: span.offsetTop + parseInt(computed['borderTopWidth']),
+      left: span.offsetLeft + parseInt(computed['borderLeftWidth']),
+      height: parseInt(computed['lineHeight'])
+    };
+
+    if (debug) {
+      span.style.backgroundColor = '#aaa';
+    } else {
+      document.body.removeChild(div);
+    }
+
+    return coordinates;
+  }
+
+  {
+    module.exports = getCaretCoordinates;
+  }
+
+}());
+});
+
+var prism = createCommonjsModule(function (module) {
+/* **********************************************
+     Begin prism-core.js
+********************************************** */
+
+var _self = (typeof window !== 'undefined')
+	? window   // if in browser
+	: (
+		(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
+		? self // if in worker
+		: {}   // if in node js
+	);
+
+/**
+ * Prism: Lightweight, robust, elegant syntax highlighting
+ * MIT license http://www.opensource.org/licenses/mit-license.php/
+ * @author Lea Verou http://lea.verou.me
+ */
+
+var Prism = (function(){
+
+// Private helper vars
+var lang = /\blang(?:uage)?-([\w-]+)\b/i;
+var uniqueId = 0;
+
+var _ = _self.Prism = {
+	manual: _self.Prism && _self.Prism.manual,
+	disableWorkerMessageHandler: _self.Prism && _self.Prism.disableWorkerMessageHandler,
+	util: {
+		encode: function (tokens) {
+			if (tokens instanceof Token) {
+				return new Token(tokens.type, _.util.encode(tokens.content), tokens.alias);
+			} else if (_.util.type(tokens) === 'Array') {
+				return tokens.map(_.util.encode);
+			} else {
+				return tokens.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\u00a0/g, ' ');
+			}
+		},
+
+		type: function (o) {
+			return Object.prototype.toString.call(o).match(/\[object (\w+)\]/)[1];
+		},
+
+		objId: function (obj) {
+			if (!obj['__id']) {
+				Object.defineProperty(obj, '__id', { value: ++uniqueId });
+			}
+			return obj['__id'];
+		},
+
+		// Deep clone a language definition (e.g. to extend it)
+		clone: function (o, visited) {
+			var type = _.util.type(o);
+			visited = visited || {};
+
+			switch (type) {
+				case 'Object':
+					if (visited[_.util.objId(o)]) {
+						return visited[_.util.objId(o)];
+					}
+					var clone = {};
+					visited[_.util.objId(o)] = clone;
+
+					for (var key in o) {
+						if (o.hasOwnProperty(key)) {
+							clone[key] = _.util.clone(o[key], visited);
+						}
+					}
+
+					return clone;
+
+				case 'Array':
+					if (visited[_.util.objId(o)]) {
+						return visited[_.util.objId(o)];
+					}
+					var clone = [];
+					visited[_.util.objId(o)] = clone;
+
+					o.forEach(function (v, i) {
+						clone[i] = _.util.clone(v, visited);
+					});
+
+					return clone;
+			}
+
+			return o;
+		}
+	},
+
+	languages: {
+		extend: function (id, redef) {
+			var lang = _.util.clone(_.languages[id]);
+
+			for (var key in redef) {
+				lang[key] = redef[key];
+			}
+
+			return lang;
+		},
+
+		/**
+		 * Insert a token before another token in a language literal
+		 * As this needs to recreate the object (we cannot actually insert before keys in object literals),
+		 * we cannot just provide an object, we need anobject and a key.
+		 * @param inside The key (or language id) of the parent
+		 * @param before The key to insert before. If not provided, the function appends instead.
+		 * @param insert Object with the key/value pairs to insert
+		 * @param root The object that contains `inside`. If equal to Prism.languages, it can be omitted.
+		 */
+		insertBefore: function (inside, before, insert, root) {
+			root = root || _.languages;
+			var grammar = root[inside];
+
+			if (arguments.length == 2) {
+				insert = arguments[1];
+
+				for (var newToken in insert) {
+					if (insert.hasOwnProperty(newToken)) {
+						grammar[newToken] = insert[newToken];
+					}
+				}
+
+				return grammar;
+			}
+
+			var ret = {};
+
+			for (var token in grammar) {
+
+				if (grammar.hasOwnProperty(token)) {
+
+					if (token == before) {
+
+						for (var newToken in insert) {
+
+							if (insert.hasOwnProperty(newToken)) {
+								ret[newToken] = insert[newToken];
+							}
+						}
+					}
+
+					ret[token] = grammar[token];
+				}
+			}
+
+			// Update references in other language definitions
+			_.languages.DFS(_.languages, function(key, value) {
+				if (value === root[inside] && key != inside) {
+					this[key] = ret;
+				}
+			});
+
+			return root[inside] = ret;
+		},
+
+		// Traverse a language definition with Depth First Search
+		DFS: function(o, callback, type, visited) {
+			visited = visited || {};
+			for (var i in o) {
+				if (o.hasOwnProperty(i)) {
+					callback.call(o, i, o[i], type || i);
+
+					if (_.util.type(o[i]) === 'Object' && !visited[_.util.objId(o[i])]) {
+						visited[_.util.objId(o[i])] = true;
+						_.languages.DFS(o[i], callback, null, visited);
+					}
+					else if (_.util.type(o[i]) === 'Array' && !visited[_.util.objId(o[i])]) {
+						visited[_.util.objId(o[i])] = true;
+						_.languages.DFS(o[i], callback, i, visited);
+					}
+				}
+			}
+		}
+	},
+	plugins: {},
+
+	highlightAll: function(async, callback) {
+		_.highlightAllUnder(document, async, callback);
+	},
+
+	highlightAllUnder: function(container, async, callback) {
+		var env = {
+			callback: callback,
+			selector: 'code[class*="language-"], [class*="language-"] code, code[class*="lang-"], [class*="lang-"] code'
+		};
+
+		_.hooks.run("before-highlightall", env);
+
+		var elements = env.elements || container.querySelectorAll(env.selector);
+
+		for (var i=0, element; element = elements[i++];) {
+			_.highlightElement(element, async === true, env.callback);
+		}
+	},
+
+	highlightElement: function(element, async, callback) {
+		// Find language
+		var language, grammar, parent = element;
+
+		while (parent && !lang.test(parent.className)) {
+			parent = parent.parentNode;
+		}
+
+		if (parent) {
+			language = (parent.className.match(lang) || [,''])[1].toLowerCase();
+			grammar = _.languages[language];
+		}
+
+		// Set language on the element, if not present
+		element.className = element.className.replace(lang, '').replace(/\s+/g, ' ') + ' language-' + language;
+
+		if (element.parentNode) {
+			// Set language on the parent, for styling
+			parent = element.parentNode;
+
+			if (/pre/i.test(parent.nodeName)) {
+				parent.className = parent.className.replace(lang, '').replace(/\s+/g, ' ') + ' language-' + language;
+			}
+		}
+
+		var code = element.textContent;
+
+		var env = {
+			element: element,
+			language: language,
+			grammar: grammar,
+			code: code
+		};
+
+		_.hooks.run('before-sanity-check', env);
+
+		if (!env.code || !env.grammar) {
+			if (env.code) {
+				_.hooks.run('before-highlight', env);
+				env.element.textContent = env.code;
+				_.hooks.run('after-highlight', env);
+			}
+			_.hooks.run('complete', env);
+			return;
+		}
+
+		_.hooks.run('before-highlight', env);
+
+		if (async && _self.Worker) {
+			var worker = new Worker(_.filename);
+
+			worker.onmessage = function(evt) {
+				env.highlightedCode = evt.data;
+
+				_.hooks.run('before-insert', env);
+
+				env.element.innerHTML = env.highlightedCode;
+
+				callback && callback.call(env.element);
+				_.hooks.run('after-highlight', env);
+				_.hooks.run('complete', env);
+			};
+
+			worker.postMessage(JSON.stringify({
+				language: env.language,
+				code: env.code,
+				immediateClose: true
+			}));
+		}
+		else {
+			env.highlightedCode = _.highlight(env.code, env.grammar, env.language);
+
+			_.hooks.run('before-insert', env);
+
+			env.element.innerHTML = env.highlightedCode;
+
+			callback && callback.call(element);
+
+			_.hooks.run('after-highlight', env);
+			_.hooks.run('complete', env);
+		}
+	},
+
+	highlight: function (text, grammar, language) {
+		var env = {
+			code: text,
+			grammar: grammar,
+			language: language
+		};
+		_.hooks.run('before-tokenize', env);
+		env.tokens = _.tokenize(env.code, env.grammar);
+		_.hooks.run('after-tokenize', env);
+		return Token.stringify(_.util.encode(env.tokens), env.language);
+	},
+
+	matchGrammar: function (text, strarr, grammar, index, startPos, oneshot, target) {
+		var Token = _.Token;
+
+		for (var token in grammar) {
+			if(!grammar.hasOwnProperty(token) || !grammar[token]) {
+				continue;
+			}
+
+			if (token == target) {
+				return;
+			}
+
+			var patterns = grammar[token];
+			patterns = (_.util.type(patterns) === "Array") ? patterns : [patterns];
+
+			for (var j = 0; j < patterns.length; ++j) {
+				var pattern = patterns[j],
+					inside = pattern.inside,
+					lookbehind = !!pattern.lookbehind,
+					greedy = !!pattern.greedy,
+					lookbehindLength = 0,
+					alias = pattern.alias;
+
+				if (greedy && !pattern.pattern.global) {
+					// Without the global flag, lastIndex won't work
+					var flags = pattern.pattern.toString().match(/[imuy]*$/)[0];
+					pattern.pattern = RegExp(pattern.pattern.source, flags + "g");
+				}
+
+				pattern = pattern.pattern || pattern;
+
+				// Don’t cache length as it changes during the loop
+				for (var i = index, pos = startPos; i < strarr.length; pos += strarr[i].length, ++i) {
+
+					var str = strarr[i];
+
+					if (strarr.length > text.length) {
+						// Something went terribly wrong, ABORT, ABORT!
+						return;
+					}
+
+					if (str instanceof Token) {
+						continue;
+					}
+
+					if (greedy && i != strarr.length - 1) {
+						pattern.lastIndex = pos;
+						var match = pattern.exec(text);
+						if (!match) {
+							break;
+						}
+
+						var from = match.index + (lookbehind ? match[1].length : 0),
+						    to = match.index + match[0].length,
+						    k = i,
+						    p = pos;
+
+						for (var len = strarr.length; k < len && (p < to || (!strarr[k].type && !strarr[k - 1].greedy)); ++k) {
+							p += strarr[k].length;
+							// Move the index i to the element in strarr that is closest to from
+							if (from >= p) {
+								++i;
+								pos = p;
+							}
+						}
+
+						// If strarr[i] is a Token, then the match starts inside another Token, which is invalid
+						if (strarr[i] instanceof Token) {
+							continue;
+						}
+
+						// Number of tokens to delete and replace with the new match
+						delNum = k - i;
+						str = text.slice(pos, p);
+						match.index -= pos;
+					} else {
+						pattern.lastIndex = 0;
+
+						var match = pattern.exec(str),
+							delNum = 1;
+					}
+
+					if (!match) {
+						if (oneshot) {
+							break;
+						}
+
+						continue;
+					}
+
+					if(lookbehind) {
+						lookbehindLength = match[1] ? match[1].length : 0;
+					}
+
+					var from = match.index + lookbehindLength,
+					    match = match[0].slice(lookbehindLength),
+					    to = from + match.length,
+					    before = str.slice(0, from),
+					    after = str.slice(to);
+
+					var args = [i, delNum];
+
+					if (before) {
+						++i;
+						pos += before.length;
+						args.push(before);
+					}
+
+					var wrapped = new Token(token, inside? _.tokenize(match, inside) : match, alias, match, greedy);
+
+					args.push(wrapped);
+
+					if (after) {
+						args.push(after);
+					}
+
+					Array.prototype.splice.apply(strarr, args);
+
+					if (delNum != 1)
+						_.matchGrammar(text, strarr, grammar, i, pos, true, token);
+
+					if (oneshot)
+						break;
+				}
+			}
+		}
+	},
+
+	tokenize: function(text, grammar, language) {
+		var strarr = [text];
+
+		var rest = grammar.rest;
+
+		if (rest) {
+			for (var token in rest) {
+				grammar[token] = rest[token];
+			}
+
+			delete grammar.rest;
+		}
+
+		_.matchGrammar(text, strarr, grammar, 0, 0, false);
+
+		return strarr;
+	},
+
+	hooks: {
+		all: {},
+
+		add: function (name, callback) {
+			var hooks = _.hooks.all;
+
+			hooks[name] = hooks[name] || [];
+
+			hooks[name].push(callback);
+		},
+
+		run: function (name, env) {
+			var callbacks = _.hooks.all[name];
+
+			if (!callbacks || !callbacks.length) {
+				return;
+			}
+
+			for (var i=0, callback; callback = callbacks[i++];) {
+				callback(env);
+			}
+		}
+	}
+};
+
+var Token = _.Token = function(type, content, alias, matchedStr, greedy) {
+	this.type = type;
+	this.content = content;
+	this.alias = alias;
+	// Copy of the full string this token was created from
+	this.length = (matchedStr || "").length|0;
+	this.greedy = !!greedy;
+};
+
+Token.stringify = function(o, language, parent) {
+	if (typeof o == 'string') {
+		return o;
+	}
+
+	if (_.util.type(o) === 'Array') {
+		return o.map(function(element) {
+			return Token.stringify(element, language, o);
+		}).join('');
+	}
+
+	var env = {
+		type: o.type,
+		content: Token.stringify(o.content, language, parent),
+		tag: 'span',
+		classes: ['token', o.type],
+		attributes: {},
+		language: language,
+		parent: parent
+	};
+
+	if (o.alias) {
+		var aliases = _.util.type(o.alias) === 'Array' ? o.alias : [o.alias];
+		Array.prototype.push.apply(env.classes, aliases);
+	}
+
+	_.hooks.run('wrap', env);
+
+	var attributes = Object.keys(env.attributes).map(function(name) {
+		return name + '="' + (env.attributes[name] || '').replace(/"/g, '&quot;') + '"';
+	}).join(' ');
+
+	return '<' + env.tag + ' class="' + env.classes.join(' ') + '"' + (attributes ? ' ' + attributes : '') + '>' + env.content + '</' + env.tag + '>';
+
+};
+
+if (!_self.document) {
+	if (!_self.addEventListener) {
+		// in Node.js
+		return _self.Prism;
+	}
+
+	if (!_.disableWorkerMessageHandler) {
+		// In worker
+		_self.addEventListener('message', function (evt) {
+			var message = JSON.parse(evt.data),
+				lang = message.language,
+				code = message.code,
+				immediateClose = message.immediateClose;
+
+			_self.postMessage(_.highlight(code, _.languages[lang], lang));
+			if (immediateClose) {
+				_self.close();
+			}
+		}, false);
+	}
+
+	return _self.Prism;
+}
+
+//Get current script and highlight
+var script = document.currentScript || [].slice.call(document.getElementsByTagName("script")).pop();
+
+if (script) {
+	_.filename = script.src;
+
+	if (!_.manual && !script.hasAttribute('data-manual')) {
+		if(document.readyState !== "loading") {
+			if (window.requestAnimationFrame) {
+				window.requestAnimationFrame(_.highlightAll);
+			} else {
+				window.setTimeout(_.highlightAll, 16);
+			}
+		}
+		else {
+			document.addEventListener('DOMContentLoaded', _.highlightAll);
+		}
+	}
+}
+
+return _self.Prism;
+
+})();
+
+if (module.exports) {
+	module.exports = Prism;
+}
+
+// hack for components to work correctly in node.js
+if (typeof commonjsGlobal !== 'undefined') {
+	commonjsGlobal.Prism = Prism;
+}
+
+
+/* **********************************************
+     Begin prism-markup.js
+********************************************** */
+
+Prism.languages.markup = {
+	'comment': /<!--[\s\S]*?-->/,
+	'prolog': /<\?[\s\S]+?\?>/,
+	'doctype': /<!DOCTYPE[\s\S]+?>/i,
+	'cdata': /<!\[CDATA\[[\s\S]*?]]>/i,
+	'tag': {
+		pattern: /<\/?(?!\d)[^\s>\/=$<%]+(?:\s+[^\s>\/=]+(?:=(?:("|')(?:\\[\s\S]|(?!\1)[^\\])*\1|[^\s'">=]+))?)*\s*\/?>/i,
+		greedy: true,
+		inside: {
+			'tag': {
+				pattern: /^<\/?[^\s>\/]+/i,
+				inside: {
+					'punctuation': /^<\/?/,
+					'namespace': /^[^\s>\/:]+:/
+				}
+			},
+			'attr-value': {
+				pattern: /=(?:("|')(?:\\[\s\S]|(?!\1)[^\\])*\1|[^\s'">=]+)/i,
+				inside: {
+					'punctuation': [
+						/^=/,
+						{
+							pattern: /(^|[^\\])["']/,
+							lookbehind: true
+						}
+					]
+				}
+			},
+			'punctuation': /\/?>/,
+			'attr-name': {
+				pattern: /[^\s>\/]+/,
+				inside: {
+					'namespace': /^[^\s>\/:]+:/
+				}
+			}
+
+		}
+	},
+	'entity': /&#?[\da-z]{1,8};/i
+};
+
+Prism.languages.markup['tag'].inside['attr-value'].inside['entity'] =
+	Prism.languages.markup['entity'];
+
+// Plugin to make entity title show the real entity, idea by Roman Komarov
+Prism.hooks.add('wrap', function(env) {
+
+	if (env.type === 'entity') {
+		env.attributes['title'] = env.content.replace(/&amp;/, '&');
+	}
+});
+
+Prism.languages.xml = Prism.languages.markup;
+Prism.languages.html = Prism.languages.markup;
+Prism.languages.mathml = Prism.languages.markup;
+Prism.languages.svg = Prism.languages.markup;
+
+
+/* **********************************************
+     Begin prism-css.js
+********************************************** */
+
+Prism.languages.css = {
+	'comment': /\/\*[\s\S]*?\*\//,
+	'atrule': {
+		pattern: /@[\w-]+?.*?(?:;|(?=\s*\{))/i,
+		inside: {
+			'rule': /@[\w-]+/
+			// See rest below
+		}
+	},
+	'url': /url\((?:(["'])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1|.*?)\)/i,
+	'selector': /[^{}\s][^{};]*?(?=\s*\{)/,
+	'string': {
+		pattern: /("|')(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
+		greedy: true
+	},
+	'property': /[-_a-z\xA0-\uFFFF][-\w\xA0-\uFFFF]*(?=\s*:)/i,
+	'important': /\B!important\b/i,
+	'function': /[-a-z0-9]+(?=\()/i,
+	'punctuation': /[(){};:]/
+};
+
+Prism.languages.css['atrule'].inside.rest = Prism.languages.css;
+
+if (Prism.languages.markup) {
+	Prism.languages.insertBefore('markup', 'tag', {
+		'style': {
+			pattern: /(<style[\s\S]*?>)[\s\S]*?(?=<\/style>)/i,
+			lookbehind: true,
+			inside: Prism.languages.css,
+			alias: 'language-css',
+			greedy: true
+		}
+	});
+
+	Prism.languages.insertBefore('inside', 'attr-value', {
+		'style-attr': {
+			pattern: /\s*style=("|')(?:\\[\s\S]|(?!\1)[^\\])*\1/i,
+			inside: {
+				'attr-name': {
+					pattern: /^\s*style/i,
+					inside: Prism.languages.markup.tag.inside
+				},
+				'punctuation': /^\s*=\s*['"]|['"]\s*$/,
+				'attr-value': {
+					pattern: /.+/i,
+					inside: Prism.languages.css
+				}
+			},
+			alias: 'language-css'
+		}
+	}, Prism.languages.markup.tag);
+}
+
+/* **********************************************
+     Begin prism-clike.js
+********************************************** */
+
+Prism.languages.clike = {
+	'comment': [
+		{
+			pattern: /(^|[^\\])\/\*[\s\S]*?(?:\*\/|$)/,
+			lookbehind: true
+		},
+		{
+			pattern: /(^|[^\\:])\/\/.*/,
+			lookbehind: true,
+			greedy: true
+		}
+	],
+	'string': {
+		pattern: /(["'])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
+		greedy: true
+	},
+	'class-name': {
+		pattern: /((?:\b(?:class|interface|extends|implements|trait|instanceof|new)\s+)|(?:catch\s+\())[\w.\\]+/i,
+		lookbehind: true,
+		inside: {
+			punctuation: /[.\\]/
+		}
+	},
+	'keyword': /\b(?:if|else|while|do|for|return|in|instanceof|function|new|try|throw|catch|finally|null|break|continue)\b/,
+	'boolean': /\b(?:true|false)\b/,
+	'function': /[a-z0-9_]+(?=\()/i,
+	'number': /\b0x[\da-f]+\b|(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,
+	'operator': /--?|\+\+?|!=?=?|<=?|>=?|==?=?|&&?|\|\|?|\?|\*|\/|~|\^|%/,
+	'punctuation': /[{}[\];(),.:]/
+};
+
+
+/* **********************************************
+     Begin prism-javascript.js
+********************************************** */
+
+Prism.languages.javascript = Prism.languages.extend('clike', {
+	'keyword': /\b(?:as|async|await|break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|finally|for|from|function|get|if|implements|import|in|instanceof|interface|let|new|null|of|package|private|protected|public|return|set|static|super|switch|this|throw|try|typeof|var|void|while|with|yield)\b/,
+	'number': /\b(?:0[xX][\dA-Fa-f]+|0[bB][01]+|0[oO][0-7]+|NaN|Infinity)\b|(?:\b\d+\.?\d*|\B\.\d+)(?:[Ee][+-]?\d+)?/,
+	// Allow for all non-ASCII characters (See http://stackoverflow.com/a/2008444)
+	'function': /[_$a-z\xA0-\uFFFF][$\w\xA0-\uFFFF]*(?=\s*\()/i,
+	'operator': /-[-=]?|\+[+=]?|!=?=?|<<?=?|>>?>?=?|=(?:==?|>)?|&[&=]?|\|[|=]?|\*\*?=?|\/=?|~|\^=?|%=?|\?|\.{3}/
+});
+
+Prism.languages.insertBefore('javascript', 'keyword', {
+	'regex': {
+		pattern: /((?:^|[^$\w\xA0-\uFFFF."'\])\s])\s*)\/(\[[^\]\r\n]+]|\\.|[^/\\\[\r\n])+\/[gimyu]{0,5}(?=\s*($|[\r\n,.;})]))/,
+		lookbehind: true,
+		greedy: true
+	},
+	// This must be declared before keyword because we use "function" inside the look-forward
+	'function-variable': {
+		pattern: /[_$a-z\xA0-\uFFFF][$\w\xA0-\uFFFF]*(?=\s*=\s*(?:function\b|(?:\([^()]*\)|[_$a-z\xA0-\uFFFF][$\w\xA0-\uFFFF]*)\s*=>))/i,
+		alias: 'function'
+	},
+	'constant': /\b[A-Z][A-Z\d_]*\b/
+});
+
+Prism.languages.insertBefore('javascript', 'string', {
+	'template-string': {
+		pattern: /`(?:\\[\s\S]|[^\\`])*`/,
+		greedy: true,
+		inside: {
+			'interpolation': {
+				pattern: /\$\{[^}]+\}/,
+				inside: {
+					'interpolation-punctuation': {
+						pattern: /^\$\{|\}$/,
+						alias: 'punctuation'
+					},
+					rest: Prism.languages.javascript
+				}
+			},
+			'string': /[\s\S]+/
+		}
+	}
+});
+
+if (Prism.languages.markup) {
+	Prism.languages.insertBefore('markup', 'tag', {
+		'script': {
+			pattern: /(<script[\s\S]*?>)[\s\S]*?(?=<\/script>)/i,
+			lookbehind: true,
+			inside: Prism.languages.javascript,
+			alias: 'language-javascript',
+			greedy: true
+		}
+	});
+}
+
+Prism.languages.js = Prism.languages.javascript;
+
+
+/* **********************************************
+     Begin prism-file-highlight.js
+********************************************** */
+
+(function () {
+	if (typeof self === 'undefined' || !self.Prism || !self.document || !document.querySelector) {
+		return;
+	}
+
+	self.Prism.fileHighlight = function() {
+
+		var Extensions = {
+			'js': 'javascript',
+			'py': 'python',
+			'rb': 'ruby',
+			'ps1': 'powershell',
+			'psm1': 'powershell',
+			'sh': 'bash',
+			'bat': 'batch',
+			'h': 'c',
+			'tex': 'latex'
+		};
+
+		Array.prototype.slice.call(document.querySelectorAll('pre[data-src]')).forEach(function (pre) {
+			var src = pre.getAttribute('data-src');
+
+			var language, parent = pre;
+			var lang = /\blang(?:uage)?-(?!\*)([\w-]+)\b/i;
+			while (parent && !lang.test(parent.className)) {
+				parent = parent.parentNode;
+			}
+
+			if (parent) {
+				language = (pre.className.match(lang) || [, ''])[1];
+			}
+
+			if (!language) {
+				var extension = (src.match(/\.(\w+)$/) || [, ''])[1];
+				language = Extensions[extension] || extension;
+			}
+
+			var code = document.createElement('code');
+			code.className = 'language-' + language;
+
+			pre.textContent = '';
+
+			code.textContent = 'Loading…';
+
+			pre.appendChild(code);
+
+			var xhr = new XMLHttpRequest();
+
+			xhr.open('GET', src, true);
+
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState == 4) {
+
+					if (xhr.status < 400 && xhr.responseText) {
+						code.textContent = xhr.responseText;
+
+						Prism.highlightElement(code);
+					}
+					else if (xhr.status >= 400) {
+						code.textContent = '✖ Error ' + xhr.status + ' while fetching file: ' + xhr.statusText;
+					}
+					else {
+						code.textContent = '✖ Error: File does not exist or is empty';
+					}
+				}
+			};
+
+			if (pre.hasAttribute('data-download-link') && Prism.plugins.toolbar) {
+				Prism.plugins.toolbar.registerButton('download-file', function () {
+					var a = document.createElement('a');
+					a.textContent = pre.getAttribute('data-download-link-label') || 'Download';
+					a.setAttribute('download', '');
+					a.href = src;
+					return a;
+				});
+			}
+
+			xhr.send(null);
+		});
+
+	};
+
+	document.addEventListener('DOMContentLoaded', self.Prism.fileHighlight);
+
+})();
+});
+
+class CodeFlask {
+  constructor(selectorOrElement, opts) {
+    if (!selectorOrElement) {
+      // If no selector or element is passed to CodeFlask,
+      // stop execution and throw error.
+      throw Error('CodeFlask expects a parameter which is Element or a String selector');
+      return;
+    }
+
+    if (!opts) {
+      // If no selector or element is passed to CodeFlask,
+      // stop execution and throw error.
+      throw Error('CodeFlask expects an object containing options as second parameter');
+      return;
+    }
+
+    if (selectorOrElement.nodeType) {
+      // If it is an element, assign it directly
+      this.editorRoot = selectorOrElement;
+    } else {
+      // If it is a selector, tries to find element
+      const editorRoot = document.querySelector(selectorOrElement);
+
+      // If an element is found using this selector,
+      // assign this element as the root element
+      if (editorRoot) {
+        this.editorRoot = editorRoot;
+      }
+    }
+
+    this.opts = opts;
+    this.startEditor();
+  }
+
+  startEditor() {
+    const isCSSInjected = inject_css(editor_css, null, this.opts.styleParent);
+
+    if (!isCSSInjected) {
+      throw Error('Failed to inject CodeFlask CSS.');
+      return;
+    }
+
+    // The order matters (pre > code). Don't change it
+    // or things are going to break.
+    this.createWrapper();
+    this.createTextarea();
+    this.createPre();
+    this.createCode();
+
+    // Autosuggestions
+    this.createAutoSugg();
+
+    this.runOptions();
+    this.listenTextarea();
+    this.populateDefault();
+    this.updateCode(this.code);
+  }
+
+  createWrapper() {
+    this.code = this.editorRoot.innerHTML;
+    this.editorRoot.innerHTML = '';
+    this.elWrapper = this.createElement('div', this.editorRoot);
+    this.elWrapper.classList.add('codeflask');
+  }
+
+  createTextarea() {
+    this.elTextarea = this.createElement('textarea', this.elWrapper);
+    this.elTextarea.classList.add('codeflask__textarea', 'codeflask__flatten');
+  }
+
+  createPre() {
+    this.elPre = this.createElement('pre', this.elWrapper);
+    this.elPre.classList.add('codeflask__pre', 'codeflask__flatten');
+  }
+
+  createCode() {
+    this.elCode = this.createElement('code', this.elPre);
+    this.elCode.classList.add('codeflask__code', `language-${this.opts.language || 'html'}`);
+  }
+
+  createLineNumbers() {
+    this.elLineNumbers = this.createElement('div', this.elWrapper);
+    this.elLineNumbers.classList.add('codeflask__lines');
+    this.setLineNumber();
+  }
+
+  createElement(elementTag, whereToAppend) {
+    const element = document.createElement(elementTag);
+    whereToAppend.appendChild(element);
+
+    return element;
+  }
+
+  // Create auto suggestions components like list
+  createAutoSugg() {
+    this.elAutoSuggResults = this.createElement('div', this.elWrapper);
+    this.elAutoSuggResults.classList.add('codeflask__auto-suggestions-list');
+    this.elAutoSuggResults.hidden = true;
+  }
+
+  runOptions() {
+    this.opts.rtl = this.opts.rtl || false;
+    this.opts.tabSize = this.opts.tabSize || 2;
+    this.opts.enableAutocorrect = this.opts.enableAutocorrect || false;
+    this.opts.lineNumbers = this.opts.lineNumbers || false;
+    this.opts.defaultTheme = this.opts.defaultTheme !== false;
+    // Set word wrap
+    this.opts.wordWrap = this.opts.wordWrap || false;
+    this.opts.autoSuggestions = this.opts.autoSuggestions || false;
+
+    if (this.opts.rtl === true) {
+      this.elTextarea.setAttribute('dir', 'rtl');
+      this.elPre.setAttribute('dir', 'rtl');
+    }
+
+    if (this.opts.enableAutocorrect === false) {
+      this.elTextarea.setAttribute('spellcheck', 'false');
+      this.elTextarea.setAttribute('autocapitalize', 'off');
+      this.elTextarea.setAttribute('autocomplete', 'off');
+      this.elTextarea.setAttribute('autocorrect', 'off');
+    }
+
+    if (this.opts.lineNumbers) {
+      this.elWrapper.classList.add('codeflask--has-line-numbers');
+      this.createLineNumbers();
+    }
+
+    if (this.opts.defaultTheme) {
+      inject_css(default_css_theme, 'theme-default', this.opts.styleParent);
+    }
+
+    // If wordwrap then enable it
+    if (this.opts.wordWrap) {
+      this.elTextarea.classList.add('word-wrap');
+      this.elPre.classList.add('word-wrap');
+    }
+
+    // Default theme options
+    this.defaultThemeOptions = {
+      lineHeight: 20,
+      fontSize: 13
+    };
+
+    this.opts.themeOptions = Object.assign(this.defaultThemeOptions, this.opts.themeOptions || {});
+  }
+
+  updateLineNumbersCount() {
+    let numberList = '';
+
+    for (let i = 1; i <= this.lineNumber; i++) {
+      numberList = numberList + `<span class="codeflask__lines__line">${i}</span>`;
+    }
+
+    this.elLineNumbers.innerHTML = numberList;
+  }
+
+  listenTextarea() {
+    this.elTextarea.addEventListener('input', (e) => {
+      this.code = e.target.value;
+      this.elCode.innerHTML = escape_html(e.target.value);
+      this.highlight();
+      setTimeout(() => {
+        this.runUpdate();
+        this.setLineNumber();
+      }, 1);
+
+    });
+
+    this.elTextarea.addEventListener('keydown', (e) => {
+      this.handleTabs(e);
+      this.handleSelfClosingCharacters(e);
+      this.handleNewLineIndentation(e);
+      this.handleAutoSuggKeysDown(e);
+    });
+
+    this.elTextarea.addEventListener('scroll', (e) => {
+      this.elPre.style.transform = `translate3d(-${e.target.scrollLeft}px, -${e.target.scrollTop}px, 0)`;
+      if (this.elLineNumbers) {
+        this.elLineNumbers.style.transform = `translate3d(0, -${e.target.scrollTop}px, 0)`;
+      }
+    });
+  }
+
+  handleTabs(e) {
+    if (e.keyCode !== 9) {
+      return;
+    }
+    e.preventDefault();
+    const pressedCode = e.keyCode;
+    const selectionStart = this.elTextarea.selectionStart;
+    const selectionEnd = this.elTextarea.selectionEnd;
+    const newCode = `${this.code.substring(0, selectionStart)}${' '.repeat(this.opts.tabSize)}${this.code.substring(selectionEnd)}`;
+
+    this.updateCode(newCode);
+    this.elTextarea.selectionEnd = selectionEnd + this.opts.tabSize;
+  }
+
+  handleSelfClosingCharacters(e) {
+    const openChars = ['(', '[', '{', '<'];
+    const key = e.key;
+
+    if (!openChars.includes(key)) {
+      return;
+    }
+
+    switch(key) {
+      case '(':
+      this.closeCharacter(')');
+      break;
+
+      case '[':
+      this.closeCharacter(']');
+      break;
+
+      case '{':
+      this.closeCharacter('}');
+      break;
+
+      case '<':
+      this.closeCharacter('>');
+      break;
+    }
+  }
+
+  setLineNumber() {
+    this.lineNumber = this.code.split('\n').length;
+
+    if (this.opts.lineNumbers) {
+      this.updateLineNumbersCount();
+    }
+  }
+
+  handleNewLineIndentation(e) {
+    if (e.keyCode !== 13) {
+      return;
+    }
+    // TODO: Make this shit work right
+
+    // const selectionStart = this.elTextarea.selectionStart;
+    // const selectionEnd = this.elTextarea.selectionEnd;
+    // const allLines = this.code.split('\n').length;
+    // const lines = this.code.substring(0, selectionStart).split('\n');
+    // const currentLine = lines.length;
+    // const lastLine = lines[currentLine - 1];
+
+    // console.log(currentLine, allLines);
+
+    // if (lastLine !== undefined && currentLine < allLines) {
+    //   e.preventDefault();
+    //   const spaces = lastLine.match(/^ {1,}/);
+
+    //   if (spaces) {
+    //     console.log(spaces[0].length);
+    //     const newCode = `${this.code.substring(0, selectionStart)}\n${' '.repeat(spaces[0].length)}${this.code.substring(selectionEnd)}`;
+    //     this.updateCode(newCode);
+    //     setTimeout(() => {
+    //       this.elTextarea.selectionEnd = selectionEnd + spaces[0].length + 1;
+    //     }, 0);
+    //   }
+    // }
+  }
+
+  // PUBLIC
+  // Create auto suggest results in DOM and update coordinates
+  setAutoSuggestionsResults(results) {
+    // If results then show auto suggestions
+    if (results && results.length > 0) {
+      this.autoSuggestionsList = results;
+      this.createAutoSuggResults(results);
+      this.updateAutoSuggResultsCoordinates();
+      this.setAutoSuggSelected(this.autoSuggSelectedIndex || 0);
+      this.showAutoSuggResults();
+    } else {
+      this.hideAutoSuggResults();
+    }
+  }
+
+  // PUBLIC
+  // Should be used by client to feed the results based on user input
+  onAutoSuggestionsSelect(callback) {
+    if (callback && {}.toString.call(callback) !== '[object Function]') {
+      throw Error('CodeFlask expects callback of type Function');
+      return;
+    }
+
+    this.onAutoSuggSelectCallback = callback;
+  }
+
+  // Handle keydown events to move current selected up or down in auto suggest results
+  handleAutoSuggKeysDown(e) {
+    // If its any of enter, tab, up and down key then dont proceed
+    if ([38, 40, 13, 9].indexOf(e.keyCode) === -1) return;
+
+    if (this.elAutoSuggResults.hidden || !this.autoSuggestionsList) return;
+
+    // stop the event
+    e.stopPropagation();
+    e.preventDefault();
+
+    // on enter call
+    if (e.keyCode === 13) {
+      let all = this.elAutoSuggResults.querySelectorAll('li');
+      if (all[this.autoSuggSelectedIndex]) this.triggerAutoSuggSelect(all[this.autoSuggSelectedIndex]);
+    }
+
+    let index = this.getAutoSuggSelected();
+
+    // Arrow up and down logic
+    if (index !== null && e.keyCode === 38) {
+      if (index === 0) {
+        index = this.autoSuggestionsList.length - 1;
+      } else {
+        index -= 1;
+      }
+    } else if (index !== null && e.keyCode === 40) {
+      if (index === this.autoSuggestionsList.length - 1) {
+        index = 0;
+      } else {
+        index += 1;
+      }
+    } else {
+      index = 0;
+    }
+
+    this.setAutoSuggSelected(index);
+  }
+
+  // Get selected item in auto suggest list
+  getAutoSuggSelected() {
+    let el = this.elAutoSuggResults.querySelector('li.selected');
+    if (el) {
+      return parseInt(el.getAttribute('idx'))
+    }
+
+    return null
+  }
+
+  // Set item as selected in auto suggest list
+  setAutoSuggSelected(index) {
+    let all = this.elAutoSuggResults.querySelectorAll('li');
+    if (!all[index]) return;
+
+    all.forEach((el) => {
+      el.classList.remove('selected');
+    });
+
+	all[index].classList.add('selected');
+	all[index].scrollIntoView(false);
+    this.autoSuggSelectedIndex = index;
+  }
+
+  // Create auto suggest list with given results
+  createAutoSuggResults(results) {
+    let html = '';
+    for (let index=0; index < results.length; index++) {
+      let item = results[index];
+      let title = item.title;
+      let description = item.description;
+      html += `<li class="index-${index}" idx="${index}"><span class="title">${title}</span><span class="description">${description}</span>`;
+    }
+
+    this.elAutoSuggResults.innerHTML = `<ul>${html}</ul>`;
+
+    let all = this.elAutoSuggResults.querySelectorAll('li');
+    all.forEach(el => {
+      el.addEventListener('click', (e) => {
+        let t = e.target;
+        if (e.target.tagName === 'SPAN') {
+          t = e.target.parentNode;
+        }
+
+        this.triggerAutoSuggSelect(t);
+      });
+    });
+  }
+
+  // When called it triggers auto suggest callback set by client
+  triggerAutoSuggSelect(el) {
+    if (this.onAutoSuggSelectCallback) {
+      this.onAutoSuggSelectCallback(this.autoSuggestionsList[parseInt(el.getAttribute('idx'))]);
+    }
+  }
+
+  // Show auto suggest results in DOM
+  showAutoSuggResults() {
+    this.elAutoSuggResults.hidden = false;
+  }
+
+  // Hide auto suggest results in DOM
+  hideAutoSuggResults() {
+    this.elAutoSuggResults.hidden = true;
+  }
+
+  // Update left and top coordinates of auto suggest coordinates
+  updateAutoSuggResultsCoordinates(cursorPosition, autoSuggestMinWidth) {
+    cursorPosition = cursorPosition || this.elTextarea.selectionEnd;
+
+    // Get cursor coordinates relative to textarea
+	let coordinates = cursorCoordinates(this.elTextarea, cursorPosition);
+	let editorWidth = this.elTextarea.getBoundingClientRect().width;
+	let autoSuggestWidth = autoSuggestMinWidth || 300;
+    this.elAutoSuggResults.style.top = (coordinates.top + this.opts.themeOptions.lineHeight) + 'px';
+	let offsetLeft = 0;
+	if (autoSuggestWidth+coordinates.left > editorWidth) {
+		offsetLeft = coordinates.left - ((autoSuggestWidth+coordinates.left) - editorWidth);
+	} else {
+		offsetLeft = coordinates.left;
+	}
+	this.elAutoSuggResults.style.left = offsetLeft + 'px';
+  }
+
+  closeCharacter(closeChar, cursorOffSet) {
+    // cursorOffSet can be used to move cursor relative to the closing character(s) update.
+    cursorOffSet = cursorOffSet || 1;
+    let selectionStart = this.elTextarea.selectionStart;
+    let selectionEnd = this.elTextarea.selectionEnd;
+    let newCode = `${this.code.substring(0, selectionStart)}${closeChar}${this.code.substring(selectionEnd)}`;
+
+    this.updateCode(newCode);
+    this.elTextarea.selectionEnd = selectionEnd;
+
+    if (cursorOffSet > 1) {
+      // Update cursor position once code is update. setTimeout is used since `updateCode` runs after 1ms
+      setTimeout(() => {
+        this.elTextarea.selectionEnd = this.elTextarea.selectionStart = this.code.substring(0, selectionStart).length + cursorOffSet;
+      }, 2);
+    }
+  }
+
+  updateCode(newCode) {
+    this.code = newCode;
+    this.elTextarea.value = newCode;
+    this.elCode.innerHTML = escape_html(newCode);
+    this.highlight();
+    setTimeout(this.runUpdate, 1);
+  }
+
+  updateLanguage(newLanguage) {
+    const oldLanguage = this.opts.language;
+    this.elCode.classList.remove(`language-${oldLanguage}`);
+    this.elCode.classList.add(`language-${newLanguage}`);
+    this.opts.language = newLanguage;
+    this.highlight();
+  }
+
+  addLanguage(name, options) {
+    prism.languages[name] = options;
+  }
+
+  populateDefault() {
+    this.updateCode(this.code);
+  }
+
+  highlight() {
+    prism.highlightElement(this.elCode, false);
+  }
+
+  onUpdate(callback) {
+    if (callback && {}.toString.call(callback) !== '[object Function]') {
+      throw Error('CodeFlask expects callback of type Function');
+      return;
+    }
+
+    this.updateCallBack = callback;
+  }
+
+  getCode() {
+    return this.code;
+  }
+
+  runUpdate() {
+    if (this.updateCallBack) {
+      this.updateCallBack(this.code);
+    }
+  }
+}
+
+export default CodeFlask;

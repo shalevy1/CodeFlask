@@ -354,7 +354,8 @@ export default class CodeFlask {
       el.classList.remove('selected');
     })
 
-    all[index].classList.add('selected');
+	all[index].classList.add('selected');
+	all[index].scrollIntoView(false);
     this.autoSuggSelectedIndex = index;
   }
 
@@ -401,13 +402,21 @@ export default class CodeFlask {
   }
 
   // Update left and top coordinates of auto suggest coordinates
-  updateAutoSuggResultsCoordinates(cursorPosition) {
+  updateAutoSuggResultsCoordinates(cursorPosition, autoSuggestMinWidth) {
     cursorPosition = cursorPosition || this.elTextarea.selectionEnd
 
     // Get cursor coordinates relative to textarea
-    let coordinates = getCursorCoordinates(this.elTextarea, cursorPosition)
+	let coordinates = getCursorCoordinates(this.elTextarea, cursorPosition)
+	let editorWidth = this.elTextarea.getBoundingClientRect().width
+	let autoSuggestWidth = autoSuggestMinWidth || 300
     this.elAutoSuggResults.style.top = (coordinates.top + this.opts.themeOptions.lineHeight) + 'px'
-    this.elAutoSuggResults.style.left = coordinates.left + 'px'
+	let offsetLeft = 0
+	if (autoSuggestWidth+coordinates.left > editorWidth) {
+		offsetLeft = coordinates.left - ((autoSuggestWidth+coordinates.left) - editorWidth)
+	} else {
+		offsetLeft = coordinates.left
+	}
+	this.elAutoSuggResults.style.left = offsetLeft + 'px'
   }
 
   closeCharacter(closeChar, cursorOffSet) {
